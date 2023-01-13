@@ -29,9 +29,9 @@ function Accounts({}){
     
     const fetchData = async () => {
       try {
-        const response = await api.get(`/accounts/`);
-        const resp=response.data.filter(rsp => rsp.user_id == user.user_id);
-        setRes(resp);
+
+        const response = await api.get(`/accounts`,{params:{user_id:user.user_id}});
+        setRes(response.data);
 
       } catch {
         setRes("Something went wrong");

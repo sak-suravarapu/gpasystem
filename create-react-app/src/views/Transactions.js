@@ -30,36 +30,50 @@ function Transactions({}){
   const { user, logoutUser } = useContext(AuthContext);
   const [res, setRes] = useState([]);
   const api = useAxios();
-  //const resp = api.get("/accounts/");
 
   useEffect(() => {
     
     const fetchData = async () => {
       try {
-        const response = await api.get(`/accounts/`);
-        const resp=response.data.filter(rsp => rsp.user_id == user.user_id);        
-        const response1 = await api.get('/transactions/')
-        console.log(response1);
-        //setRes(response1.data);
+        const response = await api.get(`/accounts`,{params:{user_id:user.user_id}});
         const filteredArray = []; 
-        const i = 0;
-        response1.data.map((data)=>{
-          resp.map((data1)=>{
-            if (data.account_id == data1.account_number){
-              filteredArray.push(data);
-            }
+
+        response.data.map((data)=>{
+          console.log(data.id);
+          api.get('/transactions',{params:{account_id:data.id}}).then((data1)=>{
+                        
+                console.log(data1.data);
+                //Loop through transactions for the accounts
+                        data1.data.map((data2)=>{
+                          //Subtitute accountid with account number
+                            data2.account_id=data.account_number;
+                            filteredArray.push(data2);
+                          console.log(data2);
+                          //data2.account_id=data.account_number;
+                        });
+                        setRes(filteredArray);
+                        console.log(filteredArray);
 
           });
-        //     if (data.account_id == resp[i].account_number){
+          
+          
+        });
+        
+
+        // response1.data.map((data)=>{
+        //   response.data.map((data1)=>{
+        //     if (data.account_id == data1.account_number){
         //       filteredArray.push(data);
         //     }
 
-         });
-        //console.log(filteredArray);
-        console.log(filteredArray);
-        setRes(filteredArray);
+        //   });
+        //  });
         
-      } catch {
+        //console.log(filteredArray);
+//        setRes(filteredArray);
+        
+      } catch (err) {
+        console.log(err);
         setRes("Something went wrong");
       }
     };
