@@ -41,6 +41,24 @@ class PGAccountsList(generics.ListCreateAPIView):
     queryset=PGAccounts.objects.all()
     serializer_class=PGAccountsSerializer
 
+    def get_queryset(self):
+        queryset = PGAccounts.objects.all()
+        user = self.request.query_params.get('user_id')
+        if user is not None:
+            queryset = queryset.filter(user_id = user)
+            return queryset
+        queryset = PGAccounts.objects.all()
+        return queryset
+
+        #return super().get_queryset()
+    
+class PGAcctsDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    List the account balance on a date
+    """
+    # queryset=PGAccounts.objects.all()
+    # serializer_class=PGAccountsSerializer
+
 class PGAccountsDetail(APIView):
     """
     Retrieve, update or delete an account
@@ -51,6 +69,8 @@ class PGAccountsDetail(APIView):
             return PGAccounts.objects.get(pk=pk)
         except PGAccounts.DoesNotExist:
             raise Http404
+    
+    
 
     def get(self,request,pk,format=None):
         account = self.get_object(pk)
@@ -70,18 +90,30 @@ class PGAccountsDetail(APIView):
         account.delete()
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
-class PGTransactionsList(APIView):
+class PGTransactionsList(generics.ListCreateAPIView):
 
     """
     List all transactions or create a new transaction
     """
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self,request,format=None):
-        accounts = PGTransactions.objects.all()
-        serializer = PGTransactionsSerializer(accounts, many=True)
-        return Response(serializer.data)
-    
+    queryset = PGTransactions.objects.all()
+    serializer_class = PGTransactionsSerializer
+
+    # def get(self,request,format=None):
+    #     accounts = PGTransactions.objects.all()
+    #     serializer = PGTransactionsSerializer(accounts, many=True)
+    #     return Response(serializer.data)
+
+    def get_queryset(self):
+        queryset = PGTransactions.objects.all()
+        account = self.request.query_params.get('account_id')
+        if account is not None:
+            queryset = queryset.filter(account_id = account)
+            return queryset
+        queryset = PGTransactions.objects.all()
+        return queryset
+
     @transaction.atomic
     def post(self,request2,format=None):
         serializer = PGTransactionsSerializer(data=request2.data)
@@ -93,10 +125,11 @@ class PGTransactionsList(APIView):
             tranamt=request2.data['amount']
 
             self1=PGAccountsDetail()
-            account=self1.get_object(pk=acctid)
-            
+            #account=self1.get_object(pk=acctid)
+            account=self1.get_object(pk = acctid)
+            id = account.id
             curr_bal=account.current_balance
-            member=PGAccounts.objects.get(pk=account.account_number)
+            member=PGAccounts.objects.get(pk=id)
             member.account_number=account.account_number
             member.user_id=account.user_id
             if trantype == 'DEBIT':    
